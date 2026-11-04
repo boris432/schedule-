@@ -41,6 +41,7 @@ h1{font-size:34px;line-height:1.1;margin:2px 4px 2px;font-weight:700;letter-spac
 .n{width:26px;color:var(--sub);font-size:15px;font-variant-numeric:tabular-nums;flex:none}
 .name{flex:1;font-size:17px}
 .room{color:var(--sub);font-size:15px;flex:none}
+.empty{padding:36px 16px;text-align:center;color:var(--sub);font-size:17px}
 .foot{margin:14px 6px 0;color:var(--sub);font-size:13px;text-align:center}
 </style>
 </head>
@@ -97,13 +98,14 @@ function render(){
     b.onclick=function(){sel=i;render()};
     seg.appendChild(b);
   });
-  var title=DAYS[sel],sub=plural(S[sel].length);
+  var title=DAYS[sel],sub=S[sel].length?plural(S[sel].length):"Уроков нет";
   if(sel===real){title="Сегодня";sub=DAYS[sel]+" · "+sub}
   else if(sel===(real+1)%7){title="Завтра";sub=DAYS[sel]+" · "+sub}
   document.getElementById("title").textContent=title;
   document.getElementById("sub").textContent=sub;
   var list=document.getElementById("list");
   list.innerHTML="";
+  if(!S[sel].length){var e=document.createElement("div");e.className="empty";e.textContent="Уроков нет";list.appendChild(e)}
   group(S[sel]).forEach(function(g){
     var row=document.createElement("div");row.className="row";
     var n=document.createElement("span");n.className="n";
@@ -115,7 +117,25 @@ function render(){
   });
   document.getElementById("foot").textContent=real>4?"Сегодня выходной — показан понедельник":"";
 }
-render();
+function b64bytes(s){
+  s=s.replace(/-/g,"+").replace(/_/g,"/");
+  while(s.length%4)s+="=";
+  var bin=atob(s),a=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
+  return a;
+}
+function loadData(){
+  var p=new URLSearchParams(location.search).get("d");
+  if(!p||typeof DecompressionStream==="undefined")return Promise.resolve();
+  var st=new Blob([b64bytes(p)]).stream().pipeThrough(new DecompressionStream("deflate"));
+  return new Response(st).text().then(function(t){
+    var d=JSON.parse(t);
+    if(Array.isArray(d)&&d.length===5)S=d;
+  });
+}
+loadData().catch(function(){}).then(function(){
+  real=minskDay();sel=real<5?real:0;render();
+});
 </script>
 </body>
 </html>
