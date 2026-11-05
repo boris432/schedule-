@@ -42,6 +42,7 @@ h1{font-size:34px;line-height:1.1;margin:2px 4px 2px;font-weight:700;letter-spac
 .name{flex:1;font-size:17px}
 .room{color:var(--sub);font-size:15px;flex:none}
 .empty{padding:36px 16px;text-align:center;color:var(--sub);font-size:17px}
+.cap{margin:28px 6px 8px;color:var(--sub);font-size:13px;text-transform:uppercase;letter-spacing:.02em}
 .foot{margin:14px 6px 0;color:var(--sub);font-size:13px;text-align:center}
 </style>
 </head>
@@ -53,8 +54,31 @@ h1{font-size:34px;line-height:1.1;margin:2px 4px 2px;font-weight:700;letter-spac
   <div class="seg" id="seg"></div>
   <div class="card" id="list"></div>
   <p class="foot" id="foot"></p>
+  <p class="cap">Оформление</p>
+  <div class="seg" id="theme"></div>
 </div>
 <script>
+function getTheme(){try{return localStorage.getItem("theme")||"auto"}catch(e){return "auto"}}
+function applyTheme(t){
+  var r=document.documentElement;
+  if(t==="light"||t==="dark")r.setAttribute("data-theme",t);else r.removeAttribute("data-theme");
+}
+function renderTheme(){
+  var box=document.getElementById("theme"),cur=getTheme();
+  box.innerHTML="";
+  [["auto","Авто"],["light","Светлая"],["dark","Тёмная"]].forEach(function(o){
+    var b=document.createElement("button");
+    b.textContent=o[1];
+    if(o[0]===cur)b.className="on";
+    b.onclick=function(){
+      try{localStorage.setItem("theme",o[0])}catch(e){}
+      applyTheme(o[0]);renderTheme();
+    };
+    box.appendChild(b);
+  });
+}
+applyTheme(getTheme());
+renderTheme();
 var DAYS=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
 var SHORT=["Пн","Вт","Ср","Чт","Пт"];
 var S=[
